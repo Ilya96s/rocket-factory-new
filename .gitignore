@@ -11,22 +11,26 @@
 # Test binary, built with `go test -c`
 *.test
 
-# Code coverage profiles and other test artifacts
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-coverage.*
-*.coverprofile
-profile.cov
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
-go.work.sum
+.idea
+.vscode
+.cursor/
+bin/
+bundles/
+node_modules/
+coverage/
+.DS_Store
+.golangci-cache/
+.mcp.json
+.claude/settings.local.json
 
-# env file
-.env
-
-# Editor/IDE
-# .idea/
-# .vscode/
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
+.playwright-mcp/
+*__pycache__/
