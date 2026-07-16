@@ -2,8 +2,7 @@ syntax = "proto3";
 
 package payment.v1;
 
-// TODO: Заменить на актуальный go_package
-option go_package = "github.com/rocket-factory-new/shared/pkg/proto/payment/v1;paymentv1";
+option go_package = "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/payment/v1;paymentv1";
 
 // PaymentService обрабатывает оплату заказов
 service PaymentService {

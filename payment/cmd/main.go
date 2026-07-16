@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	paymentv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/payment/v1"
 	"github.com/google/uuid"
-	paymentv1 "github.com/rocket-factory-new/shared/pkg/proto/payment/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
