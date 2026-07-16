@@ -4,7 +4,7 @@ package inventory.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/rocket-factory-new/shared/pkg/proto/inventory/v1;inventoryv1";
+option go_package = "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/inventory/v1;inventoryv1";
 
 // InventoryService управляет каталогом деталей для космических кораблей
 service InventoryService {
