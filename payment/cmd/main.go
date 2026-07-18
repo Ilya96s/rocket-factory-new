@@ -38,10 +38,10 @@ func NewServer() *PaymentServer {
 	return &PaymentServer{}
 }
 
-// Обработка оплаты заказа
+// PayOrder Обработка оплаты заказа
 func (s *PaymentServer) PayOrder(ctx context.Context, req *paymentv1.PayOrderRequest) (*paymentv1.PayOrderResponse, error) {
 	if req.OrderUuid == "" {
-		return nil, status.Error(codes.InvalidArgument, "OrderUuid обязателен")
+		return nil, status.Error(codes.InvalidArgument, "не указан uuid заказа")
 	}
 	if req.GetPaymentMethod() == paymentv1.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED {
 		return nil, status.Error(codes.InvalidArgument, "не указан метод оплаты")
