@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -17,7 +18,7 @@ import (
 
 const (
 	// Адрес сервера
-	grpcAddress = "localhost:50051"
+	grpcAddress = ":50051"
 
 	// gRPC keepalive параметры
 	grpcMaxConnectionIdle     = 15 * time.Minute // Закрыть idle-соединения (нет активных RPC)
@@ -31,8 +32,8 @@ const (
 func main() {
 	listener, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
-		slog.Error("ошибка создания TCP-сокета: %v", err)
-		return
+		slog.Error("ошибка создания TCP-сокета", "error", err)
+		os.Exit(1)
 	}
 
 	grpcServer := grpc.NewServer(

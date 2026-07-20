@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"slices"
+	"strings"
 
 	inventoryv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/inventory/v1"
 	"github.com/google/uuid"
@@ -10,6 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var _ inventoryv1.InventoryServiceServer = (*InventoryGrpcServer)(nil)
 
 type InventoryGrpcServer struct {
 	inventoryv1.UnimplementedInventoryServiceServer
@@ -88,19 +91,19 @@ func NewInventoryGrpcServer() *InventoryGrpcServer {
 	}
 }
 
-// GetPart Возвращает деталь по UUID
-func (s *InventoryGrpcServer) GetPart(ctx context.Context, req *inventoryv1.GetPartRequest) (*inventoryv1.GetPartResponse, error) {
+// GetPart возвращает деталь по UUID
+func (s *InventoryGrpcServer) GetPart(_ context.Context, req *inventoryv1.GetPartRequest) (*inventoryv1.GetPartResponse, error) {
 	if req.GetUuid() == "" {
-		return nil, status.Error(codes.InvalidArgument, "UUID детали обязателен")
+		return nil, status.Error(codes.InvalidArgument, "не указан uuid")
 	}
 	partUuid, err := uuid.Parse(req.GetUuid())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "невалидный UUID детали: %s", partUuid.String())
+		return nil, status.Errorf(codes.InvalidArgument, "невалидный uuid детали: %s", req.GetUuid())
 	}
 
 	part, ok := s.parts[partUuid]
 	if !ok {
-		return nil, status.Errorf(codes.NotFound, "деталь по переданному UUID не найдена: %s", partUuid.String())
+		return nil, status.Errorf(codes.NotFound, "деталь по переданному uuid не найдена: %s", partUuid.String())
 	}
 
 	return &inventoryv1.GetPartResponse{
@@ -108,22 +111,22 @@ func (s *InventoryGrpcServer) GetPart(ctx context.Context, req *inventoryv1.GetP
 	}, nil
 }
 
-// ListParts Возвращает список деталей с возможностью фильтрации по типу или конкретным UUID
-func (s *InventoryGrpcServer) ListParts(ctx context.Context, req *inventoryv1.ListPartsRequest) (*inventoryv1.ListPartsResponse, error) {
-	uuids := req.GetUuids()
+// ListParts возвращает список деталей с возможностью фильтрации по типу или конкретным UUID
+func (s *InventoryGrpcServer) ListParts(_ context.Context, req *inventoryv1.ListPartsRequest) (*inventoryv1.ListPartsResponse, error) {
+	partUUIDs := req.GetUuids()
 
-	// Если передан список uuids
-	if len(uuids) > 0 {
+	// Если передан список partUUIDs
+	if len(partUUIDs) > 0 {
 		var parts []*inventoryv1.Part
-		for _, val := range uuids {
-			partUuid, err := uuid.Parse(val)
+		for _, val := range partUUIDs {
+			partUUID, err := uuid.Parse(val)
 			if err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, "невалидный UUID детали: %s", partUuid)
+				return nil, status.Errorf(codes.InvalidArgument, "невалидный uuid детали: %s", req.GetUuids())
 			}
 
-			part, ok := s.parts[partUuid]
+			part, ok := s.parts[partUUID]
 			if !ok {
-				return nil, status.Errorf(codes.NotFound, "деталь по переданному UUID не найдена: %s", partUuid)
+				return nil, status.Errorf(codes.NotFound, "деталь по переданному UUID не найдена: %s", partUUID)
 			}
 			parts = append(parts, toProtoPart(part))
 		}
@@ -140,6 +143,9 @@ func (s *InventoryGrpcServer) ListParts(ctx context.Context, req *inventoryv1.Li
 		for _, part := range s.parts {
 			parts = append(parts, toProtoPart(part))
 		}
+
+		sortPartsByName(parts)
+
 		return &inventoryv1.ListPartsResponse{
 			Parts: parts,
 		}, nil
@@ -153,19 +159,18 @@ func (s *InventoryGrpcServer) ListParts(ctx context.Context, req *inventoryv1.Li
 		}
 	}
 
-	// Сортировка по имени
-	slices.SortFunc(parts, func(a, b *inventoryv1.Part) int {
-		if a.Name < b.Name {
-			return -1
-		} else if a.Name > b.Name {
-			return 1
-		}
-		return 0
-	})
+	sortPartsByName(parts)
 
 	return &inventoryv1.ListPartsResponse{
 		Parts: parts,
 	}, nil
+}
+
+// sortPartsByName Сортировка по имени
+func sortPartsByName(parts []*inventoryv1.Part) {
+	slices.SortFunc(parts, func(a, b *inventoryv1.Part) int {
+		return strings.Compare(a.GetName(), b.GetName())
+	})
 }
 
 type Part struct {
