@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Ilya96s/rocket-factory-new/payment/pkg/app"
+	"github.com/Ilya96s/rocket-factory-new/order/pkg/app"
 )
 
 func main() {

@@ -25,7 +25,11 @@ func (s *service) Pay(_ context.Context, req model.PayOrderRequest) (model.PayOr
 		)
 	}
 
-	slog.Info("оплата прошла успешно: %q, %q", req.PaymentMethod, req.PaymentMethod)
+	slog.Info(
+		"оплата прошла успешно",
+		"order_uuid", req.OrderUUID,
+		"payment_method", req.PaymentMethod,
+	)
 
 	return model.PayOrderResponse{
 		TransactionUUID: uuid.NewString(),

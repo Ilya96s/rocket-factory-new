@@ -60,7 +60,7 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("создать соединение с payment service: %w", err)
 	}
-	defer closeGRPCConnection(inventoryConnection, "payment service")
+	defer closeGRPCConnection(paymentConnection, "payment service")
 
 	// Конкретная реализация репозитория
 	repository := order.NewRepository()

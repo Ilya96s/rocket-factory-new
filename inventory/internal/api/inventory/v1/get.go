@@ -17,7 +17,7 @@ func (h *handler) GetPart(ctx context.Context, req *inventoryv1.GetPartRequest) 
 		switch {
 		case errors.Is(err, partErrors.ErrPartNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
-		case errors.Is(err, partErrors.ErrPartNotFound):
+		case errors.Is(err, partErrors.ErrInvalidUUID):
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "внутренняя ошибка сервиса")

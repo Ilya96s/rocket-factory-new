@@ -24,7 +24,7 @@ func (h *handler) CreateOrder(ctx context.Context, req *orderv1.CreateOrderReque
 		serviceRequest.WeaponUUID = &value
 	}
 
-	order, err := h.orderService.Create(ctx, model.CreateOrderRequest{})
+	order, err := h.orderService.Create(ctx, serviceRequest)
 	if err != nil {
 		return mapCreateError(err), nil
 	}

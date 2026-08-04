@@ -37,9 +37,9 @@ func Run(ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	partRepository := partRepository.New()
-	partService := partService.New(partRepository)
-	api := partAPI.New(partService)
+	repository := partRepository.New()
+	service := partService.New(repository)
+	api := partAPI.New(service)
 
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{

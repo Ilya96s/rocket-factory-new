@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	paymentAPI "github.com/Ilya96s/rocket-factory-new/payment/internal/api/v1"
+	paymentAPI "github.com/Ilya96s/rocket-factory-new/payment/internal/api/paymnet/v1"
 	paymentService "github.com/Ilya96s/rocket-factory-new/payment/internal/service/payment"
 	paymentv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/payment/v1"
 	"google.golang.org/grpc"

@@ -15,16 +15,16 @@ func (s *service) Create(ctx context.Context, req model.CreateOrderRequest) (mod
 		return model.Order{}, fmt.Errorf("hull_uuid %q: %w", req.HullUUID, errs.ErrInvalidUUID)
 	}
 	if _, err := uuid.Parse(req.EngineUUID); err != nil {
-		return model.Order{}, fmt.Errorf("engine_uuid %q: %w", req.HullUUID, errs.ErrInvalidUUID)
+		return model.Order{}, fmt.Errorf("engine_uuid %q: %w", req.EngineUUID, errs.ErrInvalidUUID)
 	}
 	if req.ShieldUUID != nil {
 		if _, err := uuid.Parse(*req.ShieldUUID); err != nil {
-			return model.Order{}, fmt.Errorf("shield_uuid %q: %w", req.HullUUID, errs.ErrInvalidUUID)
+			return model.Order{}, fmt.Errorf("shield_uuid %q: %w", req.ShieldUUID, errs.ErrInvalidUUID)
 		}
 	}
 	if req.WeaponUUID != nil {
 		if _, err := uuid.Parse(*req.WeaponUUID); err != nil {
-			return model.Order{}, fmt.Errorf("weapon_uuid %q: %w", req.HullUUID, errs.ErrInvalidUUID)
+			return model.Order{}, fmt.Errorf("weapon_uuid %q: %w", req.WeaponUUID, errs.ErrInvalidUUID)
 		}
 	}
 
