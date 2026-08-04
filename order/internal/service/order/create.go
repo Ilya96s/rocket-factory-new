@@ -19,12 +19,12 @@ func (s *service) Create(ctx context.Context, req model.CreateOrderRequest) (mod
 	}
 	if req.ShieldUUID != nil {
 		if _, err := uuid.Parse(*req.ShieldUUID); err != nil {
-			return model.Order{}, fmt.Errorf("shield_uuid %q: %w", req.ShieldUUID, errs.ErrInvalidUUID)
+			return model.Order{}, fmt.Errorf("shield_uuid %q: %w", *req.ShieldUUID, errs.ErrInvalidUUID)
 		}
 	}
 	if req.WeaponUUID != nil {
 		if _, err := uuid.Parse(*req.WeaponUUID); err != nil {
-			return model.Order{}, fmt.Errorf("weapon_uuid %q: %w", req.WeaponUUID, errs.ErrInvalidUUID)
+			return model.Order{}, fmt.Errorf("weapon_uuid %q: %w", *req.WeaponUUID, errs.ErrInvalidUUID)
 		}
 	}
 

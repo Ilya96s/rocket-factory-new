@@ -17,9 +17,14 @@ func (s *service) Pay(_ context.Context, req model.PayOrderRequest) (model.PayOr
 		)
 	}
 
-	if req.PaymentMethod == model.PaymentMethodUnspecified {
+	switch req.PaymentMethod {
+	case model.PaymentMethodCard,
+		model.PaymentMethodSBP,
+		model.PaymentMethodCreditCard,
+		model.PaymentMethodInvestorMoney:
+	default:
 		return model.PayOrderResponse{}, fmt.Errorf(
-			"payment_method: %q, %w",
+			"payment_method %q: %w",
 			req.PaymentMethod,
 			paymentErrors.ErrInvalidPaymentMethod,
 		)
