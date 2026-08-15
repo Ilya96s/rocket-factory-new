@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Ilya96s/rocket-factory-new/order/internal/client/grpc/payment/v1/converter"
 	errs "github.com/Ilya96s/rocket-factory-new/order/internal/errors"
 	"github.com/Ilya96s/rocket-factory-new/order/internal/model"
 	"github.com/Ilya96s/rocket-factory-new/order/internal/service/order"
@@ -30,7 +31,7 @@ func (c *client) PayOrder(ctx context.Context, orderUUID string, method model.Pa
 		ctx,
 		&paymentv1.PayOrderRequest{
 			OrderUuid:     orderUUID,
-			PaymentMethod: toPaymentMethod(method),
+			PaymentMethod: converter.PaymentMethodToProto(method),
 		},
 	)
 	if err != nil {
@@ -59,19 +60,4 @@ func (c *client) PayOrder(ctx context.Context, orderUUID string, method model.Pa
 	}
 
 	return resp.GetTransactionUuid(), nil
-}
-
-func toPaymentMethod(method model.PaymentMethod) paymentv1.PaymentMethod {
-	switch method {
-	case model.PaymentMethodCard:
-		return paymentv1.PaymentMethod_PAYMENT_METHOD_CARD
-	case model.PaymentMethodSBP:
-		return paymentv1.PaymentMethod_PAYMENT_METHOD_SBP
-	case model.PaymentMethodCreditCard:
-		return paymentv1.PaymentMethod_PAYMENT_METHOD_CREDIT_CARD
-	case model.PaymentMethodInvestorMoney:
-		return paymentv1.PaymentMethod_PAYMENT_METHOD_INVESTOR_MONEY
-	default:
-		return paymentv1.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED
-	}
 }

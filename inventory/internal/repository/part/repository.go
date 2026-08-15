@@ -1,18 +1,18 @@
 package part
 
 import (
-	"sync"
-
-	"github.com/Ilya96s/rocket-factory-new/inventory/internal/repository/record"
+	"github.com/Ilya96s/rocket-factory-new/inventory/internal/service/part"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var _ part.PartRepository = (*repository)(nil)
+
 type repository struct {
-	mu    sync.RWMutex
-	parts map[string]record.PartRecord
+	pool *pgxpool.Pool
 }
 
-func New() *repository {
+func New(pool *pgxpool.Pool) *repository {
 	return &repository{
-		parts: make(map[string]record.PartRecord),
+		pool: pool,
 	}
 }

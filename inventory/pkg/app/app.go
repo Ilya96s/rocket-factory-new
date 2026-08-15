@@ -11,6 +11,7 @@ import (
 	partRepository "github.com/Ilya96s/rocket-factory-new/inventory/internal/repository/part"
 	partService "github.com/Ilya96s/rocket-factory-new/inventory/internal/service/part"
 	inventoryv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/inventory/v1"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
@@ -28,6 +29,8 @@ const (
 	grpcKeepaliveTimeout = 20 * time.Second
 
 	grpcMinPingInterval = 30 * time.Second
+
+	inventoryDSN = "postgres://inventory-service-user:inventory-service-password@localhost:5433/inventory-service?sslmode=disable"
 )
 
 func Run(ctx context.Context) error {
@@ -37,7 +40,13 @@ func Run(ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	repository := partRepository.New()
+	pool, err := newStorage(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	repository := partRepository.New(pool)
 	service := partService.New(repository)
 	api := partAPI.New(service)
 
@@ -80,4 +89,17 @@ func Run(ctx context.Context) error {
 
 	slog.Info("inventory service остановлен")
 	return nil
+}
+
+func newStorage(ctx context.Context) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.New(ctx, inventoryDSN)
+	if err != nil {
+		return nil, fmt.Errorf("создать пул соединений: %w", err)
+	}
+
+	if err = pool.Ping(ctx); err != nil {
+		return nil, fmt.Errorf("проверить соединение с БД: %w", err)
+	}
+
+	return pool, nil
 }

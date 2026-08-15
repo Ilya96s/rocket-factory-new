@@ -1,17 +1,13 @@
-package record // TODO какое название пакета правильнее использовать converter или order ?
+package record
 
 import "time"
 
-// TODO изменить на тип указатель у тех типов где мб nil
-type OrderRecord struct {
-	UUID            string
-	HulUUID         string
-	EngineUUID      string
-	ShieldUUID      string
-	WeaponUUID      string
-	TotalPrice      int64
-	TransactionUUID string
-	PaymentMethod   string
-	Status          string
-	CreatedAt       time.Time
+type Order struct {
+	UUID            string     `db:"uuid"`
+	TotalPrice      int64      `db:"total_price"`
+	Status          string     `db:"status"`
+	TransactionUUID *string    `db:"transaction_uuid"`
+	PaymentMethod   *string    `db:"payment_method"`
+	CreatedAt       time.Time  `db:"created_at"`
+	UpdatedAt       *time.Time `db:"updated_at"`
 }

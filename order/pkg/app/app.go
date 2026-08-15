@@ -12,9 +12,12 @@ import (
 	inventoryClient "github.com/Ilya96s/rocket-factory-new/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/Ilya96s/rocket-factory-new/order/internal/client/grpc/payment/v1"
 	"github.com/Ilya96s/rocket-factory-new/order/internal/repository/order"
+	"github.com/Ilya96s/rocket-factory-new/order/internal/repository/order_item"
 	orderService "github.com/Ilya96s/rocket-factory-new/order/internal/service/order"
 	inventoryv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/payment/v1"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,6 +28,8 @@ const (
 	orderHTTPAddress        = ":8080"
 	inventoryServiceAddress = "localhost:50051"
 	paymentServiceAddress   = "localhost:50052"
+	// Конфигурация БД пока задаётся в коде.
+	orderDSN = "postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable"
 
 	readHeaderTimeout = 5 * time.Second
 	readTimeout       = 10 * time.Second
@@ -37,34 +42,22 @@ const (
 // Run - собирает зависимости, запускает HTTP-сервер
 // и останавливает приложение после отмены контекста
 func Run(ctx context.Context) error {
-	clientKeepAlive := keepalive.ClientParameters{
-		Time:                time.Second * 30,
-		Timeout:             time.Second * 10,
-		PermitWithoutStream: true,
-	}
-
-	inventoryConnection, err := grpc.NewClient(
-		inventoryServiceAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(clientKeepAlive),
-	)
+	inventoryConnection, paymentConnection, err := newServiceConnections()
 	if err != nil {
-		return fmt.Errorf("создать соединение с inventory service: %w", err)
+		return err
 	}
 	defer closeGRPCConnection(inventoryConnection, "inventory service")
-
-	paymentConnection, err := grpc.NewClient(
-		paymentServiceAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(clientKeepAlive),
-	)
-	if err != nil {
-		return fmt.Errorf("создать соединение с payment service: %w", err)
-	}
 	defer closeGRPCConnection(paymentConnection, "payment service")
 
+	pool, txManager, err := newStorage(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
 	// Конкретная реализация репозитория
-	repository := order.NewRepository()
+	orderRepo := order.NewRepository(pool)
+	orderItemRepo := order_item.NewRepository(pool)
 
 	// Сгенерированный protobuf-клиент
 	inventoryProtoClient := inventoryv1.NewInventoryServiceClient(inventoryConnection)
@@ -79,23 +72,10 @@ func Run(ctx context.Context) error {
 	paymentGRPCClient := paymentClient.New(paymentProtoClient)
 
 	// Бизнес-слой
-	service := orderService.NewService(repository, inventoryGRPCClient, paymentGRPCClient)
+	service := orderService.NewService(orderRepo, orderItemRepo, inventoryGRPCClient, paymentGRPCClient, txManager)
 
 	// HTTP/OpenAPI-адаптер
 	apiHandler := orderAPI.New(service)
-
-	orderDSN := "postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable"
-	pool, err := pgxpool.New(ctx, orderDSN)
-	if err != nil {
-		return fmt.Errorf("создание пула соединений: %w", err)
-	}
-	defer pool.Close()
-	err = pool.Ping(ctx)
-	if err != nil {
-		return fmt.Errorf("проверка соединения с БД: %w", err)
-	}
-
-	slog.Info("подключение к Postgresql установлено")
 
 	orderServer, err := orderAPI.SetupServer(apiHandler)
 	if err != nil {
@@ -162,6 +142,55 @@ func Run(ctx context.Context) error {
 	slog.Info("order service остановлен")
 
 	return nil
+}
+
+func newServiceConnections() (*grpc.ClientConn, *grpc.ClientConn, error) {
+	clientKeepAlive := keepalive.ClientParameters{
+		Time:                30 * time.Second,
+		Timeout:             10 * time.Second,
+		PermitWithoutStream: true,
+	}
+
+	inventoryConnection, err := grpc.NewClient(
+		inventoryServiceAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(clientKeepAlive),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("создать соединение с inventory service: %w", err)
+	}
+
+	paymentConnection, err := grpc.NewClient(
+		paymentServiceAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(clientKeepAlive),
+	)
+	if err != nil {
+		closeGRPCConnection(inventoryConnection, "inventory service")
+		return nil, nil, fmt.Errorf("создать соединение с payment service: %w", err)
+	}
+
+	return inventoryConnection, paymentConnection, nil
+}
+
+func newStorage(ctx context.Context) (*pgxpool.Pool, *manager.Manager, error) {
+	pool, err := pgxpool.New(ctx, orderDSN)
+	if err != nil {
+		return nil, nil, fmt.Errorf("создать пул соединений: %w", err)
+	}
+
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, nil, fmt.Errorf("проверить соединение с БД: %w", err)
+	}
+
+	txManager, err := manager.New(trmpgx.NewDefaultFactory(pool))
+	if err != nil {
+		pool.Close()
+		return nil, nil, fmt.Errorf("создать менеджер транзакций: %w", err)
+	}
+
+	return pool, txManager, nil
 }
 
 func closeGRPCConnection(connection *grpc.ClientConn, serviceName string) {

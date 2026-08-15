@@ -18,6 +18,20 @@ type OrderRepository interface {
 	Update(ctx context.Context, order model.Order) error
 }
 
+// OrderItemRepository определяет контракт для работы с хранилищем деталей заказов
+type OrderItemRepository interface {
+	// Create - создать описания деталей заказа
+	Create(ctx context.Context, items []model.OrderItem) error
+
+	GetByOrderUUID(ctx context.Context, orderUUID string) ([]model.OrderItem, error)
+}
+
+// TxManager определяет контракт для управления транзакциями.
+// *manager.Manager из go-transaction-manager удовлетворяет этому интерфейсу.
+type TxManager interface {
+	Do(ctx context.Context, fn func(ctx context.Context) error) error
+}
+
 // InventoryClient определяет контракты для работы с InventoryService
 type InventoryClient interface {
 	// ListParts - возвращает список деталей с возможностью фильтрации по типу или по конкретным UUID

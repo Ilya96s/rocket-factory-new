@@ -11,21 +11,21 @@ import (
 func orderToDTO(order model.Order) (*orderv1.OrderDto, error) {
 	orderUUID, err := uuid.Parse(order.UUID)
 	if err != nil {
-		return nil, fmt.Errorf("невалидный order UUID: %w", err)
+		return nil, fmt.Errorf("невалидный UUID заказа: %w", err)
 	}
 	hullUUID, err := uuid.Parse(order.HullUUID)
 	if err != nil {
-		return nil, fmt.Errorf("невалидный hull UUID: %w", err)
+		return nil, fmt.Errorf("невалидный UUID корпуса: %w", err)
 	}
 	engineUUID, err := uuid.Parse(order.EngineUUID)
 	if err != nil {
-		return nil, fmt.Errorf("невалидный engine UUID: %w", err)
+		return nil, fmt.Errorf("невалидный UUID двигателя: %w", err)
 	}
 	var shieldUUID orderv1.OptNilUUID
 	if order.ShieldUUID != nil {
 		value, err := uuid.Parse(*order.ShieldUUID)
 		if err != nil {
-			return nil, fmt.Errorf("невалидный shield UUID: %w", err)
+			return nil, fmt.Errorf("невалидный UUID щита: %w", err)
 		}
 		shieldUUID = orderv1.NewOptNilUUID(value)
 	}
@@ -33,7 +33,7 @@ func orderToDTO(order model.Order) (*orderv1.OrderDto, error) {
 	if order.WeaponUUID != nil {
 		value, err := uuid.Parse(*order.WeaponUUID)
 		if err != nil {
-			return nil, fmt.Errorf("невалидный weapon UUID: %w", err)
+			return nil, fmt.Errorf("невалидный UUID оружия: %w", err)
 		}
 
 		weaponUUID = orderv1.NewOptNilUUID(value)
@@ -44,7 +44,7 @@ func orderToDTO(order model.Order) (*orderv1.OrderDto, error) {
 		value, err := uuid.Parse(*order.TransactionUUID)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"невалидный transaction UUID: %w",
+				"невалидный UUID транзакции: %w",
 				err,
 			)
 		}

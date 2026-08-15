@@ -6,13 +6,15 @@ replace github.com/Ilya96s/rocket-factory-new/shared => ../shared
 
 require (
 	github.com/Ilya96s/rocket-factory-new/shared v0.0.0-00010101000000-000000000000
+	github.com/Masterminds/squirrel v1.5.4
+	github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2 v2.0.4
+	github.com/avito-tech/go-transaction-manager/trm/v2 v2.0.4
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.5.4
 	google.golang.org/grpc v1.82.1
 )
 
 require (
-	github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2 v2.0.4 // indirect
-	github.com/avito-tech/go-transaction-manager/trm/v2 v2.0.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dlclark/regexp2 v1.12.0 // indirect
 	github.com/fatih/color v1.19.0 // indirect
@@ -24,7 +26,9 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.5.4 // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/ogen-go/ogen v1.23.0 // indirect

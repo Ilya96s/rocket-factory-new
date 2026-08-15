@@ -10,7 +10,7 @@ import (
 
 func mapCreateError(err error) orderv1.CreateOrderRes {
 	switch {
-	case errors.Is(err, errs.ErrInvalidUUID):
+	case errors.Is(err, errs.ErrInvalidUUID), errors.Is(err, errs.ErrInvalidPartType):
 		return &orderv1.CreateOrderBadRequest{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
