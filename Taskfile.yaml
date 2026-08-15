@@ -19,16 +19,18 @@ vars:
   PROTOC_GEN_GO_GRPC: '{{.BIN_DIR}}/protoc-gen-go-grpc'
   OGEN: '{{.BIN_DIR}}/ogen'
 
+  GOOSE_VERSION: 'v3.27.1'
+  GOOSE: '{{.BIN_DIR}}/goose'
+
   MODULES: order inventory payment
 
 tasks:
-
   up-core:
     desc: "Создать общую сеть для микросервисов"
     cmds:
       - echo '[task] Создаем общую сеть microservices-net'
-      - docker network rm microservices-net
-      - docker network create microservices-net
+      - docker network rm microservices-net 2>/dev/null || true
+      - docker network create microservices-net 2>/dev/null || true
 
   down-core:
     desc: "Удалить общую сеть микросервисов"
@@ -78,6 +80,55 @@ tasks:
       - task down-inventory
       - task down-core
 
+  goose:install:
+    desc: "Установка goose (миграции БД)"
+    cmds:
+      - echo 'Устанавливаем goose'
+      - GOBIN={{.BIN_DIR}} go install github.com/pressly/goose/v3/cmd/goose@{{.GOOSE_VERSION}}
+    status:
+      - test -x {{.GOOSE}}
+
+  migrate:order:up:
+    desc: "Применяет все миграции Order-сервиса"
+    deps: [goose:install]
+    dotenv: ['order.env']
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" up'
+
+  migrate:order:down:
+    desc: "Откатывает последнюю миграцию Order-сервиса"
+    deps: [goose:install]
+    dotenv: ['order.env']
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" down'
+
+  migrate:order:status:
+    desc: "Показывает статус миграций Order-сервиса"
+    deps: [goose:install]
+    dotenv: ['order.env']
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" status'
+
+  migrate:inventory:up:
+    desc: "Применяет все миграции Inventory-сервиса"
+    deps: [ goose:install ]
+    dotenv: [ 'inventory.env' ]
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" up'
+
+  migrate:inventory:down:
+    desc: "Откатывает последнюю миграцию Inventory-сервиса"
+    deps: [ goose:install ]
+    dotenv: [ 'inventory.env' ]
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" down'
+
+  migrate:inventory:status:
+    desc: "Показывает статус миграций Inventory-сервиса"
+    deps: [ goose:install ]
+    dotenv: [ 'inventory.env' ]
+    cmds:
+      - '{{.GOOSE}} -dir $MIGRATIONS_DIR postgres "$DB_URI" status'
 
   formatters:install:
     desc: "Устанавливает gofumpt и gci"
