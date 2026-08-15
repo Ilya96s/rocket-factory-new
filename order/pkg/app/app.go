@@ -15,6 +15,7 @@ import (
 	orderService "github.com/Ilya96s/rocket-factory-new/order/internal/service/order"
 	inventoryv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/Ilya96s/rocket-factory-new/shared/pkg/proto/payment/v1"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -82,6 +83,19 @@ func Run(ctx context.Context) error {
 
 	// HTTP/OpenAPI-адаптер
 	apiHandler := orderAPI.New(service)
+
+	orderDSN := "postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable"
+	pool, err := pgxpool.New(ctx, orderDSN)
+	if err != nil {
+		return fmt.Errorf("создание пула соединений: %w", err)
+	}
+	defer pool.Close()
+	err = pool.Ping(ctx)
+	if err != nil {
+		return fmt.Errorf("проверка соединения с БД: %w", err)
+	}
+
+	slog.Info("подключение к Postgresql установлено")
 
 	orderServer, err := orderAPI.SetupServer(apiHandler)
 	if err != nil {

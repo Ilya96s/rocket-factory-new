@@ -1,21 +1,21 @@
 package order
 
 import (
-	"sync"
-
-	"github.com/Ilya96s/rocket-factory-new/order/internal/repository/record"
 	"github.com/Ilya96s/rocket-factory-new/order/internal/service/order"
+	trmpgx "github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var _ order.OrderRepository = (*repository)(nil)
 
 type repository struct {
-	mu     sync.RWMutex
-	orders map[string]record.OrderRecord
+	pool   *pgxpool.Pool
+	getter *trmpgx.CtxGetter
 }
 
-func NewRepository() *repository {
+func NewRepository(pool *pgxpool.Pool) *repository {
 	return &repository{
-		orders: make(map[string]record.OrderRecord),
+		pool:   pool,
+		getter: trmpgx.DefaultCtxGetter,
 	}
 }
