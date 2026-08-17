@@ -1,4 +1,4 @@
-package order
+package order_item
 
 import (
 	"github.com/Ilya96s/rocket-factory-new/order/internal/service/order"
@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var _ order.OrderRepository = (*repository)(nil)
+var _ order.OrderItemRepository = (*repository)(nil)
 
 type repository struct {
 	pool   *pgxpool.Pool

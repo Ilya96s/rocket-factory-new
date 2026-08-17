@@ -11,6 +11,10 @@ import (
 )
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
@@ -24,6 +28,8 @@ func main() {
 			"error", err,
 		)
 
-		os.Exit(1)
+		return 1
 	}
+
+	return 0
 }

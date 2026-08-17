@@ -5,7 +5,7 @@ import (
 	"github.com/Ilya96s/rocket-factory-new/inventory/internal/repository/record"
 )
 
-func FromRecordToModel(rec record.PartRecord) model.Part {
+func FromRecordToModel(rec record.Part) model.Part {
 	return model.Part{
 		UUID:          rec.UUID,
 		Name:          rec.Name,
